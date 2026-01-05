@@ -3,802 +3,668 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-<title>El Escuadrón Anti‑Zombis Digitales</title>
+<title>El Escuadrón Anti-Zombis (Final)</title>
 <style>
   :root{
-    --bg:#0b1020;         /* fondo alto contraste */
-    --panel:#ffffff;       /* cartas claras */
-    --ink:#0a0a0a;         /* texto */
-    --accent:#00e0ff;      /* acento HUD */
-    --warn:#ffc400;        /* amarillo */
-    --danger:#ff4d4d;      /* rojo */
-    --ok:#22c55e;          /* verde */
-    --gray:#9aa0a6;        /* gris UI */
-    --size:clamp(16px, 2.2vh + 1.2vw, 22px); /* tamaño base responsive */
+    --bg:#0b1020;
+    --panel:#ffffff;
+    --ink:#0a0a0a;
+    --accent:#00e0ff;
+    --warn:#ffc400;
+    --danger:#ff4d4d;
+    --ok:#22c55e;
+    --size:clamp(16px, 2.5vh + 1vw, 24px);
   }
-  *{box-sizing:border-box}
+  *{box-sizing:border-box; user-select:none; -webkit-user-select:none; touch-action:none;}
   html,body{height:100%}
   body{
-    margin:0;background:var(--bg);color:var(--panel);
-    font-family: system-ui, -apple-system, Segoe UI, Roboto, Ubuntu, Cantarell, Noto Sans, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-    font-size:var(--size); line-height:1.35; overflow:hidden;
+    margin:0; background:var(--bg); color:var(--panel);
+    font-family: "Comic Sans MS", "Chalkboard SE", system-ui, sans-serif;
+    font-size:var(--size); line-height:1.4; overflow:hidden;
   }
-  h1,h2,h3{margin:0 0 .5rem 0}
-  button, .btn{font-size:1.1em; padding:.8rem 1.2rem; border-radius:14px; border:3px solid var(--panel); background:var(--accent); color:#001018; font-weight:800; cursor:pointer}
-  button:disabled{opacity:.6; cursor:not-allowed}
+  
+  /* UI GENERAL */
+  button, .btn{
+    font-family:inherit; font-size:1em; padding:.8rem 1.5rem; border-radius:20px; 
+    border:4px solid #fff; background:var(--accent); color:#001018; 
+    font-weight:900; cursor:pointer; box-shadow:0 4px 0 rgba(0,0,0,0.3);
+    transition:transform .1s;
+  }
+  button:active{transform:translateY(4px); box-shadow:none;}
+  button.secondary{background:#3b82f6; color:white;}
+  
   #app{height:100%; display:grid; grid-template-rows:auto 1fr auto}
-  header{display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.6rem .9rem; background:#060913; border-bottom:3px solid #1c2339}
-  header .title{display:flex; align-items:center; gap:.6rem; font-weight:900; letter-spacing:.3px}
-  header .title .badge{background:var(--accent); color:#001018; padding:.1rem .5rem; border-radius:999px; border:2px solid var(--panel); font-size:.8em}
-  header .controls{display:flex; gap:.5rem; flex-wrap:wrap}
-  .screen{display:none; height:calc(100vh - 64px); padding:1rem;}
-  .screen.active{display:block}
-  .scroller{height:100%; overflow:auto}
-  .card{background:var(--panel); color:var(--ink); border:4px solid #0f172a; border-radius:18px; padding:1rem}
+  
+  header{
+    background:#1e293b; padding:.5rem 1rem; border-bottom:4px solid #0f172a;
+    display:flex; align-items:center; justify-content:space-between; gap:1rem;
+  }
+  header h1{font-size:1.1em; margin:0; color:var(--accent); text-shadow:1px 1px 0 #000;}
+  
+  .screen{display:none; height:calc(100vh - 70px); padding:1rem; animation:fadeIn .5s;}
+  .screen.active{display:block;}
+  .scroller{height:100%; overflow-y:auto; padding-bottom:2rem;}
+  
+  /* TARJETAS */
+  .card{
+    background:var(--panel); color:var(--ink); border:5px solid #0f172a; 
+    border-radius:25px; padding:1.5rem; margin-bottom:1rem;
+    box-shadow: 6px 6px 0 rgba(0,0,0,0.4);
+  }
+  
+  /* JUEGO - Layout */
+  .layout{display:grid; grid-template-rows:auto 1fr auto; gap:.5rem; height:100%;}
+  
+  /* HUD */
+  .hud{display:flex; justify-content:space-around; background:#1e293b; padding:.5rem; border-radius:15px; border:3px solid #334155;}
+  .hud-item{text-align:center;}
+  .hud-label{font-size:0.7em; text-transform:uppercase; color:#94a3b8; display:block;}
+  .hud-val{font-size:1.3em; font-weight:900; color:var(--accent);}
 
-  /* BRIEFING */
-  #briefing .grid{display:grid; grid-template-columns:1fr; gap:1rem;}
-  @media(min-width:880px){#briefing .grid{grid-template-columns:1.2fr .8fr}}
-  .tutorial-steps li{margin:.4rem 0}
-  .example-avatar{display:flex; align-items:center; gap:1rem}
-  .example-avatar .avatar{transform:scale(1.2)}
+  /* AMIGOS */
+  .friends-grid{
+    display:grid; grid-template-columns:repeat(3, 1fr); gap:.8rem; height:100%;
+    align-content:center;
+  }
+  @media(max-width:700px){ .friends-grid{grid-template-columns:1fr;} }
 
-  /* CLUB (partida) */
-  #club .hud{display:grid; grid-template-columns:repeat(3,1fr) auto; gap:.6rem; align-items:center; margin-bottom:.7rem}
-  .hud .pill{background:#0f172a; border:3px solid #26314e; padding:.4rem .6rem; border-radius:999px; display:flex; align-items:center; gap:.5rem; font-weight:800}
-  .hud .pill .n{font-size:1.1em; color:var(--accent)}
-  .hud .voice-toggle{justify-self:end}
+  .friend{
+    position:relative; background:#1e293b; border:4px solid #334155; 
+    border-radius:20px; padding:1rem; text-align:center;
+    transition: transform .2s, border-color .2s;
+  }
+  .friend.critical{border-color:var(--danger); animation:shake .5s infinite;}
 
-  .layout{display:grid; grid-template-rows:auto 1fr auto; gap:.7rem; height:calc(100% - 10px)}
-  .friends{display:grid; gap:.7rem; grid-template-columns:repeat(3,1fr)}
-  @media(max-width:880px){.friends{grid-template-columns:1fr;}}
+  /* AVATAR */
+  .avatar-container{position:relative; display:inline-block; margin-bottom:.5rem;}
+  .avatar{
+    width:100px; height:100px; background:#ffdcb4; border-radius:50%; 
+    border:4px solid #fff; position:relative; overflow:hidden;
+    transition: filter .3s, background .3s;
+  }
+  .avatar.zombie-skin{background:#799f7d; filter:grayscale(0.4) contrast(1.2);}
+  
+  .face-parts{position:absolute; inset:0; transition:transform .3s;}
+  .eyes{position:absolute; top:35%; left:50%; transform:translate(-50%,-50%); display:flex; gap:14px;}
+  .eye{width:16px; height:16px; background:#000; border-radius:50%; position:relative;}
+  .avatar.eyes-red .eye{background:#ff0000; box-shadow:0 0 6px red;}
 
-  .friend{position:relative; padding: .6rem; border-radius:16px; background:#0f172a; border:3px solid #3b486b; outline: none}
-  .friend:focus{box-shadow: 0 0 0 4px #3ddcff}
-  .friend .name{font-weight:900; letter-spacing:.2px; margin-bottom:.4rem}
-  .friend .wrap{display:grid; grid-template-columns:100px 1fr; gap:.6rem; align-items:center}
-  @media(max-width:520px){.friend .wrap{grid-template-columns:80px 1fr}}
+  .mouth{position:absolute; top:70%; left:50%; transform:translate(-50%,-50%); width:30px; height:10px; background:#000; border-radius:0 0 20px 20px;}
+  .avatar.tired .mouth{height:16px; border-radius:50%; width:16px;}
 
-  /* Avatar minimalista accesible (DOM/CSS) */
-  .avatar{width:90px; height:90px; border-radius:16px; background:linear-gradient(180deg,#ffdcb4,#ffb38a); border:4px solid #1f2937; position:relative; overflow:hidden; transition:filter .2s, transform .2s}
-  .avatar .eyes{position:absolute; left:50%; top:40%; translate:-50% -50%; display:flex; gap:16px}
-  .eye{width:14px; height:14px; background:#111; border-radius:50%; box-shadow:0 0 0 3px #fff inset}
-  .eye.red{box-shadow:0 0 0 3px #ff7272 inset}
-  .mouth{position:absolute; left:50%; top:64%; translate:-50% -50%; width:36px; height:14px; border-bottom:6px solid #111; border-radius:0 0 40px 40px}
-  .avatar .blush{position:absolute; width:16px; height:8px; background:#ff8da1; border-radius:999px; opacity:.7}
-  .blush.l{left:16px; top:58px}
-  .blush.r{right:16px; top:58px}
-  .avatar.tired .mouth{width:26px; height:18px; border-bottom-width:0; border-top:6px solid #111; border-radius:40px 40px 0 0}
-  .avatar.hunched{transform:rotate(6deg) translateY(2px)}
-  .avatar.zombie{filter:grayscale(1) brightness(.8)}
+  /* BURBUJAS DE SÍNTOMAS */
+  .symptom-bubble{
+    position:absolute; top:-20px; right:-20px; background:#fff; border:3px solid var(--danger);
+    color:var(--ink); width:50px; height:50px; border-radius:50%;
+    display:flex; align-items:center; justify-content:center; font-size:1.8em;
+    box-shadow:2px 2px 5px rgba(0,0,0,0.3); z-index:10;
+    animation: popIn .3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  }
+  .symptom-bubble.hidden{display:none;}
+  .symptom-bubble.pulse{animation:pulse 0.8s infinite;}
 
-  /* Estado encima */
-  .status{position:absolute; right:6px; top:6px; display:flex; gap:4px}
-  .status .sym{font-size:1.2em; background:#0009; border:2px solid #fff; padding:.1rem .25rem; border-radius:10px}
-  .sym.hidden{display:none}
+  /* BARRA DE ENERGÍA */
+  .meter-box{background:#000; height:24px; border-radius:12px; border:2px solid #555; position:relative; overflow:hidden; margin-top:5px;}
+  .meter-bar{height:100%; width:0%; background:linear-gradient(90deg, #22c55e, #eab308, #ef4444); transition:width .1s linear;}
 
-  /* Medidor */
-  .meter{height:20px; border-radius:10px; background:#1e293b; border:2px solid #0ea5e9; overflow:hidden; position:relative}
-  .meter .bar{height:100%; width:0%; background:linear-gradient(90deg, var(--ok), var(--warn), var(--danger)); transition:width .2s}
-  .meter .label{position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-weight:800; color:#001018; text-shadow:0 1px 1px #fff}
+  /* MOCHILA / CONTROLES */
+  .backpack-area{background:#1e293b; padding:.5rem; border-radius:20px; border:4px solid #334155;}
+  .backpack-title{text-align:center; font-size:.9em; color:#94a3b8; margin-bottom:.5rem;}
+  .tools-grid{display:grid; grid-template-columns:repeat(5, 1fr); gap:.5rem;}
+  
+  .tool{
+    background:#fff; border:3px solid #ccc; border-radius:15px; padding:.4rem; 
+    text-align:center; cursor:pointer; position:relative;
+    transition: transform .1s;
+  }
+  .tool:active{transform:scale(0.95);}
+  .tool img, .tool .emoji{font-size:2em; display:block; margin:0 auto;}
+  .tool span{font-size:0.7em; font-weight:bold; display:block; color:#333; line-height:1.1;}
+  .tool.locked{filter:grayscale(1); opacity:0.5; pointer-events:none;}
+  .tool.suggested{animation:bounce 1s infinite; border-color:var(--accent); box-shadow:0 0 10px var(--accent);}
 
-  /* Mochila */
-  .backpack{display:grid; grid-template-columns:repeat(5,1fr); gap:.6rem}
-  @media(max-width:720px){.backpack{grid-template-columns:repeat(3,1fr)}}
-  .antidote{position:relative; background:var(--panel); color:var(--ink); border:4px solid #0f172a; border-radius:18px; padding:.5rem; text-align:center; font-weight:900; user-select:none}
-  .antidote .big{font-size:1.8em; display:block}
-  .antidote .label{display:block; font-size:.9em}
-  .antidote:focus{outline:4px solid var(--accent)}
-  .antidote.locked{filter:grayscale(1); opacity:.6}
-  .antidote.selected{box-shadow:0 0 0 4px var(--accent) inset}
+  /* REPORTE COLORIDO */
+  .report-screen{display:flex; flex-direction:column; align-items:center; justify-content:center; height:100%;}
+  .report-card{
+    background:#fff; border-radius:30px; border:6px solid #3b82f6; width:95%; max-width:500px;
+    padding:2rem; text-align:center; color:#333; position:relative;
+    box-shadow:0 20px 50px rgba(0,0,0,0.5);
+    animation:slideUp .5s;
+  }
+  .report-card.win{border-color:var(--ok);}
+  .report-card.lose{border-color:var(--danger);}
 
-  /* Mensajes y drag */
-  #messages{min-height:2.2rem; padding:.4rem .6rem; background:#0f172a; border:2px dashed #26314e; border-radius:12px}
-  #dragGhost{position:fixed; pointer-events:none; z-index:9999; transform:translate(-50%,-50%); display:none}
-  #dragGhost .antidote{min-width:96px}
+  /* Feedback Flotante */
+  .floater{
+    position:absolute; font-weight:900; font-size:1.5em; pointer-events:none; z-index:99;
+    text-shadow:2px 2px 0 #000; animation:floatUp 1s forwards;
+  }
+  .big-alert{
+    position:absolute; top:30%; left:50%; transform:translate(-50%,-50%);
+    background:#ffc400; color:#000; font-size:1.5em; font-weight:900; padding:1rem;
+    border-radius:20px; border:5px solid #fff; z-index:100; animation:popIn .5s;
+    pointer-events:none; text-align:center; box-shadow:0 10px 20px rgba(0,0,0,0.5);
+  }
 
-  /* FIN y REPORTE */
-  .center{height:100%; display:grid; place-items:center}
-  .stack{display:grid; gap:.8rem}
-  .report-grid{display:grid; gap:.6rem}
-  .report-grid .row{display:flex; justify-content:space-between; background:#0f172a; border:2px solid #26314e; border-radius:12px; padding:.5rem .7rem}
+  /* Animaciones */
+  @keyframes fadeIn{from{opacity:0}to{opacity:1}}
+  @keyframes popIn{from{transform:scale(0)}to{transform:scale(1)}}
+  @keyframes floatUp{0%{transform:translateY(0); opacity:1} 100%{transform:translateY(-50px); opacity:0}}
+  @keyframes pulse{0%{transform:scale(1);} 50%{transform:scale(1.15);} 100%{transform:scale(1);}}
+  @keyframes shake{0%{transform:translateX(0)} 25%{transform:translateX(-5px)} 75%{transform:translateX(5px)} 100%{transform:translateX(0)}}
+  @keyframes bounce{0%, 100%{transform:translateY(0)} 50%{transform:translateY(-10px)}}
+  @keyframes slideUp{from{transform:translateY(50px); opacity:0} to{transform:translateY(0); opacity:1}}
 
-  /* Accesible helpers */
-  [hidden]{display:none !important}
-
-  /* Animaciones sutiles */
-  @keyframes glow{0%{box-shadow:0 0 0 0 rgba(0,224,255,.6)} 100%{box-shadow:0 0 0 16px rgba(0,224,255,0)}}
-  .glow{animation:glow 1s ease-out}
+  /* Drag Ghost */
+  #dragGhost{position:fixed; pointer-events:none; z-index:1000; transform:translate(-50%,-50%); display:none; font-size:3em;}
 </style>
 </head>
 <body>
+
 <div id="app">
+  <!-- HEADER -->
   <header>
-    <div class="title"><span class="badge">Ciudadanía Digital</span> <span>El Escuadrón Anti‑Zombis Digitales</span></div>
-    <div class="controls">
-      <button id="btnHelp" class="btn" aria-haspopup="dialog" title="Ayuda rápida">❓ Ayuda</button>
-      <button id="btnMute" class="btn" title="Silenciar sonidos">🔊 Sonidos</button>
-    </div>
+    <h1>🛡️ Escuadrón Anti-Zombis</h1>
+    <button id="btnMute" style="padding:.4rem .8rem; font-size:.8em;">🔊</button>
   </header>
 
-  <!-- BRIEFING (tutorial) -->
+  <!-- PANTALLA 1: BRIEFING -->
   <section id="briefing" class="screen active">
     <div class="scroller">
-      <div class="grid">
-        <div class="card">
-          <h1>Briefing: ¡Capitán/a, tu misión!</h1>
-          <p>Eres la/el líder del <strong>Escuadrón Anti‑Zombis</strong>. Vigila a 3 amigos en el <em>Club de Juegos</em> y evita que entren al <strong>Modo Zombi Digital</strong>.</p>
-          <div class="example-avatar">
-            <div class="avatar" aria-hidden="true">
-              <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
-              <div class="mouth"></div>
-              <div class="blush l"></div><div class="blush r"></div>
-            </div>
-            <ul class="tutorial-steps">
-              <li>Umbrales de síntomas: <strong>👀 Ojos rojos</strong> ≥ 33%, <strong>🧍‍♀️ Espalda encorvada</strong> ≥ 66%.</li>
-              <li>Si sube mucho rato: <strong>🥱 Cansancio</strong> y lentitud.</li>
-              <li>Arrastra antídotos grandes desde la <strong>Mochila</strong> hacia un amigo.</li>
-              <li><strong>Momentos inapropiados</strong>: comer y dormir. A mitad del día llega la <strong>🍎 Hora de Merienda</strong>. ¡Pantallas fuera!</li>
-              <li>Si alguien llega a 100%: <strong>🧟 Zombi Digital</strong>. Aplica <em>tres</em> antídotos correctos seguidos para salvarlo.</li>
-            </ul>
-          </div>
-          <div class="card" style="margin-top:.6rem">
-            <h3>Antídotos (Mochila)</h3>
-            <ul>
-              <li>💧 <strong>Agua</strong> → ojos rojos. Reduce −25 y pausa visual 3 s.</li>
-              <li>🧘 <strong>Estiramiento de Gato</strong> → postura encorvada. Reduce −30.</li>
-              <li>🤸 <strong>Cuerda de Saltar</strong> → cansancio/energía. Reduce −35 y da impulso 5 s.</li>
-              <li>⚽ <strong>Pelota</strong> → sedentarismo (&gt;15 s sin moverse). Reduce −20.</li>
-              <li>🍎 <strong>Mesa de Merienda</strong> (evento) → durante merienda reorienta: estabiliza 10 s.</li>
-            </ul>
-          </div>
-          <div style="margin-top:.8rem; display:flex; gap:.6rem; flex-wrap:wrap">
-            <button id="btnStart" class="btn">🚀 ¡Empezar misión!</button>
-            <button id="btnVoice" class="btn" aria-pressed="false">🗣️ Voz: OFF</button>
-          </div>
+      <div class="card">
+        <h2 style="text-align:center; font-size:1.5em;">¡Misión Importante! ⚡</h2>
+        <p>Los síntomas aparecerán <strong>de repente y al azar</strong>. ¡Tienes que ser muy rápido!</p>
+        
+        <p><strong>Si ves el ícono, arrastra la cura antes de que sea tarde:</strong></p>
+
+        <div style="display:flex; justify-content:space-around; margin:1rem 0; flex-wrap:wrap; gap:10px;">
+          <div style="text-align:center">👀<br>Agua</div>
+          <div style="text-align:center">🦐<br>Estirar</div>
+          <div style="text-align:center">🕸️<br>Pelota</div>
+          <div style="text-align:center">⚡<br>Saltar</div>
         </div>
-        <div class="card">
-          <h2>Controles</h2>
-          <ul>
-            <li><strong>Arrastrar</strong> antídoto → soltar sobre un amigo.</li>
-            <li><strong>Teclado</strong> (opcional): 1‑5 antídoto, ← → amigo, Enter aplicar, R reintentar.</li>
-            <li><strong>Accesibilidad</strong>: mensajes con voz opcional y área de dropeo grande.</li>
-          </ul>
-          <h2 style="margin-top:1rem">Objetivo</h2>
-          <p>Mantén a todos con energía y color durante <strong>90 s</strong>. ¡Si los 3 son zombis a la vez, perdemos!</p>
-        </div>
+
+        <button id="btnStart" class="btn" style="width:100%; font-size:1.2em;">🚀 ¡Entendido, vamos!</button>
       </div>
     </div>
   </section>
 
-  <!-- CLUB (partida) -->
-  <section id="club" class="screen" aria-live="polite">
+  <!-- PANTALLA 2: JUEGO -->
+  <section id="club" class="screen">
     <div class="layout">
+      <!-- HUD -->
       <div class="hud">
-        <div class="pill" id="hudTimer" aria-label="Tiempo restante"><span>🕒 Día:</span> <span class="n" id="time">90</span>s</div>
-        <div class="pill" id="hudScore" aria-label="Puntuación"><span>⭐ Puntos:</span> <span class="n" id="score">0</span></div>
-        <div class="pill" id="hudCured" aria-label="Zombis curados"><span>🧟‍♂️ Curados:</span> <span class="n" id="cured">0</span></div>
-        <button id="btnVoice2" class="btn voice-toggle" aria-pressed="false">🗣️ Voz: OFF</button>
+        <div class="hud-item">
+          <span class="hud-label">Tiempo</span>
+          <span class="hud-val" id="timer">90</span>
+        </div>
+        <div class="hud-item">
+          <span class="hud-label">Salvados</span>
+          <span class="hud-val" id="score">0</span>
+        </div>
       </div>
 
-      <div class="friends" id="friends"></div>
+      <!-- ZONA DE AMIGOS -->
+      <div class="friends-grid" id="friends-container"></div>
 
-      <div class="card">
-        <h3>Mochila de Antídotos</h3>
-        <div class="backpack" id="backpack" role="group" aria-label="Mochila de antídotos">
-          <div class="antidote" data-type="water" tabindex="0" aria-label="💧 Agua: ojos rojos (−25)"><span class="big">💧</span><span class="label">Agua</span></div>
-          <div class="antidote" data-type="stretch" tabindex="0" aria-label="🧘 Estiramiento: postura (−30)"><span class="big">🧘</span><span class="label">Estirar</span></div>
-          <div class="antidote" data-type="rope" tabindex="0" aria-label="🤸 Cuerda: cansancio (−35)"><span class="big">🤸</span><span class="label">Cuerda</span></div>
-          <div class="antidote" data-type="ball" tabindex="0" aria-label="⚽ Pelota: sedentarismo (−20)"><span class="big">⚽</span><span class="label">Pelota</span></div>
-          <div class="antidote locked" data-type="apple" tabindex="0" aria-label="🍎 Merienda: evento (estabiliza)"><span class="big">🍎</span><span class="label">Merienda</span></div>
+      <!-- MOCHILA -->
+      <div class="backpack-area">
+        <div class="backpack-title">🎒 MOCHILA (¡Arrastra rápido!)</div>
+        <div class="tools-grid" id="backpack">
+          <div class="tool" data-type="water">
+            <div class="emoji">💧</div><span>Agua</span>
+          </div>
+          <div class="tool" data-type="stretch">
+            <div class="emoji">🧘</div><span>Estirar</span>
+          </div>
+          <div class="tool" data-type="ball">
+            <div class="emoji">⚽</div><span>Pelota</span>
+          </div>
+          <div class="tool" data-type="rope">
+            <div class="emoji">🤸</div><span>Saltar</span>
+          </div>
+          <div class="tool locked" id="tool-apple" data-type="apple">
+            <div class="emoji">🍎</div><span>Merienda</span>
+          </div>
         </div>
-        <div id="messages" role="status" aria-live="polite" aria-atomic="true">Consejo: arrastra un antídoto hasta un amigo.</div>
       </div>
     </div>
     <div id="dragGhost"></div>
   </section>
 
-  <!-- FIN -->
-  <section id="fin" class="screen">
-    <div class="center">
-      <div class="card stack" id="finContent"></div>
-    </div>
-  </section>
-
-  <!-- REPORTE -->
+  <!-- PANTALLA 3: REPORTE -->
   <section id="reporte" class="screen">
-    <div class="center">
-      <div class="card" style="max-width:920px; width:95%">
-        <h2>Reporte de la Misión</h2>
-        <div class="report-grid" id="reportGrid" style="margin:.8rem 0"></div>
-        <div class="stack" style="margin-top:.8rem">
-          <div class="row" style="justify-content:center; gap:.6rem">
-            <button id="btnRetry" class="btn">🔄 Reintentar</button>
-            <button id="btnHome" class="btn">🏠 Inicio</button>
+    <div class="report-screen">
+      <div class="report-card" id="reportCard">
+        <div id="reportIcon" style="font-size:4em; margin-bottom:-10px;">🏆</div>
+        <h1 id="reportTitle" style="margin:0; font-size:1.8em;">¡Fin del Juego!</h1>
+        <p id="reportMsg" style="color:#666; margin-bottom:1.5rem;"></p>
+        
+        <div style="background:#f8fafc; padding:1rem; border-radius:15px; margin-bottom:1.5rem;">
+          <div style="display:flex; justify-content:space-between; margin-bottom:.5rem;">
+            <span>🧟 Zombis:</span> <strong id="statZombies">0</strong>
+          </div>
+          <div style="display:flex; justify-content:space-between;">
+            <span>🏥 Puntos:</span> <strong id="statScore">0</strong>
           </div>
         </div>
+
+        <button id="btnRetry" class="btn secondary">🔄 Jugar Otra Vez</button>
       </div>
     </div>
   </section>
 </div>
 
 <script>
-// ==========================
-//  El Escuadrón Anti‑Zombis Digitales
-//  Juego 1 archivo (DOM + rAF) — Sin librerías externas
-// ==========================
-(() => {
-  "use strict";
+const GAME_CONFIG = {
+  duration: 90,
+  baseFillRate: 1.5,     // Llenado natural lento
+  dangerFillRate: 15,    // Si hay síntoma, sube 15% por segundo (aprox 6 segundos para morir)
+  meriendaTime: 45,      // Segundos restantes cuando ocurre
+  meriendaDuration: 10,  // Duración del evento merienda
+  rngIntervalMin: 2,     // Mínimo segundos para nuevo síntoma
+  rngIntervalMax: 4      // Máximo segundos para nuevo síntoma
+};
 
-  // ------ Configuración del juego ------
-  const GAME_DURATION = 90;            // segundos
-  const BASE_RATE = 0.35;              // % por segundo (aumento base del medidor)
-  const SEDENTARY_SECONDS = 15;        // inactividad para sedentarismo
-  const MERIENDA_TIME = 45;            // aparece a los 45 s
-  const MERIENDA_WINDOW = 6;           // 6 s para corregir
-  const MERIENDA_STABILIZE = 10;       // estabiliza 10 s si se corrige
-  const MERIENDA_PENALTY = 10;         // penalización 10 s si se ignora (x2)
+const TOOLS = {
+  water:   { effect: -40, sound: 'glup' },
+  stretch: { effect: -40, sound: 'stretch' },
+  ball:    { effect: -40, sound: 'boing', moves: true },
+  rope:    { effect: -50, sound: 'jump', moves: true },
+  apple:   { effect: -30, sound: 'bite' }
+};
 
-  const THRESH_EYES = 33;              // 👀 ojos rojos
-  const THRESH_POSTURE = 66;           // 🧍 espalda encorvada
+let state = {
+  playing: false,
+  time: 0,
+  score: 0,
+  zombiesCount: 0,
+  meriendaActive: false,
+  meriendaGracePeriod: false, // Breve pausa al inicio de merienda
+  nextSymptomTimer: 2, 
+  friends: []
+};
 
-  const EFFECTS = {
-    water:   {delta: -25, pauseVisual: 3},
-    stretch: {delta: -30},
-    rope:    {delta: -35, boost: 5, movement: true},
-    ball:    {delta: -20, resetSedentary: true, movement: true},
-    apple:   {stabilize: MERIENDA_STABILIZE}
-  };
+let loopId = null;
+let lastTime = 0;
+let audioCtx = null;
+let muted = false;
 
-  const NAMES = ["Nico", "Ana", "Leo"];
+// --- INICIO ---
+window.addEventListener('load', () => {
+  document.getElementById('btnStart').onclick = startGame;
+  document.getElementById('btnRetry').onclick = () => showScreen('briefing');
+  document.getElementById('btnMute').onclick = toggleMute;
+  setupDragAndDrop();
+});
 
-  // ------ Estado global ------
-  let state = {
-    screen: "BRIEFING", // BRIEFING → CLUB → FIN → REPORTE
-    time: GAME_DURATION,
-    running: false,
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+}
+
+function startGame() {
+  state = {
+    playing: true,
+    time: GAME_CONFIG.duration,
     score: 0,
-    zombiesCured: 0,
-    bestCured: Number(localStorage.getItem("bestZombiesCured")||0),
-    allZombiesAtOnce: false,
-    merienda: {triggered:false, windowEnd:0, active:false},
-    selection: {antidoteIndex:0, friendIndex:0},
-    metrics: {
-      eyesCured: 0,
-      backCured: 0,
-      movementAntidotes: 0,
-      contextCorrections: 0,
-      clubLibre: false
-    }
+    zombiesCount: 0,
+    meriendaActive: false,
+    meriendaGracePeriod: false,
+    nextSymptomTimer: 2,
+    friends: ['Leo', 'Ana', 'Dani'].map((n, i) => ({
+      id: i, name: n, meter: 5, isZombie: false,
+      activeSymptom: null, // 'eyes', 'posture', 'sedentary', 'tired', 'hungry'
+      frozen: false
+    }))
   };
 
-  /** @typedef {{id:number, name:string, meter:number, lastMove:number, lastLower:number, riseSince:number, 
-   * eyes:boolean, posture:boolean, tired:boolean, sedentary:boolean,
-   * penaltyUntil:number, stabilizeUntil:number, pauseVisualUntil:number,
-   * tabletInUse:boolean, zombie:boolean, emergencyProgress:number}} Friend */
+  renderFriends();
+  
+  // Reset Merienda UI
+  const appleBtn = document.getElementById('tool-apple');
+  appleBtn.classList.add('locked');
+  appleBtn.classList.remove('suggested');
 
-  /** @type {Friend[]} */
-  let friends = [];
+  showScreen('club');
+  playSound('start');
+  
+  lastTime = performance.now();
+  loopId = requestAnimationFrame(gameLoop);
+}
 
-  // Tiempo para rAF
-  let lastTs = 0;
+// --- LOGICA ---
+function gameLoop(timestamp) {
+  if (!state.playing) return;
+  const dt = (timestamp - lastTime) / 1000;
+  lastTime = timestamp;
 
-  // ------ Utilidades de UI ------
-  const $ = (sel, root=document) => root.querySelector(sel);
-  const $$ = (sel, root=document) => Array.from(root.querySelectorAll(sel));
+  if(dt > 1) { loopId = requestAnimationFrame(gameLoop); return; }
 
-  function showScreen(key){
-    state.screen = key;
-    $$(".screen").forEach(s=>s.classList.remove("active"));
-    if(key==="BRIEFING") $("#briefing").classList.add("active");
-    if(key==="CLUB") $("#club").classList.add("active");
-    if(key==="FIN") $("#fin").classList.add("active");
-    if(key==="REPORTE") $("#reporte").classList.add("active");
+  updateLogic(dt);
+  updateVisuals();
+
+  if (state.playing) loopId = requestAnimationFrame(gameLoop);
+}
+
+function updateLogic(dt) {
+  state.time -= dt;
+
+  // 1. Fin por tiempo
+  if (state.time <= 0) { endGame(true); return; }
+
+  // 2. Merienda (Evento fijo)
+  const elapsed = GAME_CONFIG.duration - state.time;
+  if (!state.meriendaActive && elapsed > GAME_CONFIG.meriendaTime && elapsed < GAME_CONFIG.meriendaTime + 1) {
+    triggerMerienda();
+  }
+  if (state.meriendaActive && elapsed > GAME_CONFIG.meriendaTime + GAME_CONFIG.meriendaDuration) {
+    endMerienda();
   }
 
-  function speak(text){
-    if(!voiceEnabled) return;
-    try{
-      const u = new SpeechSynthesisUtterance(text);
-      u.lang = pickSpanishVoiceLang();
-      window.speechSynthesis.cancel(); // reemplazar mensaje previo
-      window.speechSynthesis.speak(u);
-    }catch(e){/* silencioso */}
-  }
-  function pickSpanishVoiceLang(){
-    const list = window.speechSynthesis.getVoices ? window.speechSynthesis.getVoices() : [];
-    const pref = list.find(v=>/^es(-|$)/i.test(v.lang));
-    return pref?pref.lang:"es-MX";
+  // 3. GENERADOR DE SÍNTOMAS ALEATORIOS (RNG)
+  // Solo genera nuevos problemas si NO estamos en merienda
+  if (!state.meriendaActive) {
+    state.nextSymptomTimer -= dt;
+    if (state.nextSymptomTimer <= 0) {
+      assignRandomSymptom();
+      state.nextSymptomTimer = Math.random() * (GAME_CONFIG.rngIntervalMax - GAME_CONFIG.rngIntervalMin) + GAME_CONFIG.rngIntervalMin;
+    }
   }
 
-  // Sonidos simples (WebAudio) sin archivos
-  let audioCtx = null;
-  function beep({type="sine", freq=600, dur=0.12, vol=0.2}){
-    if(muted) return;
-    try{
-      if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-      const o = audioCtx.createOscillator();
-      const g = audioCtx.createGain();
-      o.type = type; o.frequency.value = freq;
-      g.gain.value = vol; o.connect(g); g.connect(audioCtx.destination);
-      o.start(); setTimeout(()=>{o.stop();}, dur*1000);
-    }catch(e){/* nada */}
-  }
-  function successSound(){beep({type:"triangle", freq:760, dur:0.15});}
-  function errorSound(){beep({type:"sawtooth", freq:200, dur:0.25});}
-  function siren(){beep({type:"square", freq:180, dur:0.15}); setTimeout(()=>beep({type:"square", freq:240, dur:0.15}),150)}
+  // 4. Actualizar Amigos
+  let allZombies = true;
+  state.friends.forEach(f => {
+    if (f.frozen) return; // Si se curó, pausa breve
+    
+    if (!f.isZombie) {
+      allZombies = false;
+      
+      let currentRate = GAME_CONFIG.baseFillRate;
+      
+      // LÓGICA DE VELOCIDAD DE DAÑO
+      if (state.meriendaActive) {
+        if(state.meriendaGracePeriod) {
+          currentRate = 0; // Pausa 1.5s al aparecer el letrero
+        } else if (f.activeSymptom === 'hungry') {
+          // Velocidad IGUAL a otros síntomas, no más rápido
+          currentRate = GAME_CONFIG.dangerFillRate; 
+        } else {
+          // Si ya comió (no tiene síntoma hungry), sube lento
+          currentRate = GAME_CONFIG.baseFillRate;
+        }
+      } 
+      else if (f.activeSymptom) {
+        // Síntoma normal (ojos, espalda, rayo, etc)
+        currentRate = GAME_CONFIG.dangerFillRate;
+      }
 
-  let muted = false;
-  let voiceEnabled = false;
+      f.meter += currentRate * dt;
 
-  // ------ Inicialización ------
-  function init(){
-    // Botones del header
-    $("#btnHelp").addEventListener("click", ()=>alert(
-      "Objetivo: mantener a 3 amigos con energía durante 90 s.\n\n"+
-      "Arrastra antídotos desde la mochila hacia un amigo.\n"+
-      "Umbrales: 👀 ≥33%, 🧍 ≥66%. Evento 🍎 a los 45 s.\n"+
-      "Si alguien llega a 100%, usa 3 antídotos correctos seguidos para salvarlo."
-    ));
-    $("#btnMute").addEventListener("click", ()=>{
-      muted = !muted; $("#btnMute").textContent = muted?"🔇 Silencio":"🔊 Sonidos";
-    });
+      // Convertir a Zombi
+      if (f.meter >= 100) {
+        f.meter = 100;
+        f.isZombie = true;
+        f.activeSymptom = null;
+        playSound('zombie');
+        showFloatText(f.id, "¡OH NO!", "red");
+        state.zombiesCount++;
+      }
+    }
+  });
 
-    // Voz toggle
-    const toggleVoice = (btn)=>{
-      voiceEnabled = !voiceEnabled;
-      btn.setAttribute("aria-pressed", String(voiceEnabled));
-      btn.textContent = voiceEnabled?"🗣️ Voz: ON":"🗣️ Voz: OFF";
-      if(voiceEnabled) speak("Comandante del bienestar lista para ayudar");
-    };
-    $("#btnVoice").addEventListener("click", ()=>toggleVoice($("#btnVoice")));
-    $("#btnVoice2").addEventListener("click", ()=>toggleVoice($("#btnVoice2")));
+  if (allZombies) endGame(false);
+}
 
-    // Start
-    $("#btnStart").addEventListener("click", ()=>{
-      startBriefing();
-      startDay();
-    });
+function assignRandomSymptom() {
+  const candidates = state.friends.filter(f => !f.isZombie && !f.activeSymptom);
+  if (candidates.length === 0) return;
 
-    // Construir UI de amigos
-    const friendsWrap = $("#friends");
-    friends = NAMES.map((name, i)=>createFriend(i, name));
-    friends.forEach(fr=>friendsWrap.appendChild(renderFriendCard(fr)));
+  const friend = candidates[Math.floor(Math.random() * candidates.length)];
+  // AHORA INCLUYE 'tired' (Saltar)
+  const symptoms = ['eyes', 'posture', 'sedentary', 'tired'];
+  const symptom = symptoms[Math.floor(Math.random() * symptoms.length)];
 
-    // Drag & drop táctil / mouse
-    setupBackpackDrag();
+  friend.activeSymptom = symptom;
+  playSound('alert');
+}
 
-    // Teclado opcional
-    setupKeyboard();
-
-    updateHud();
-  }
-
-  // Crear objeto Friend
-  function createFriend(id,name){
-    return {
-      id, name, meter: 5 + Math.random()*6, lastMove: now(), lastLower: now(), riseSince: 0,
-      eyes:false, posture:false, tired:false, sedentary:false,
-      penaltyUntil:0, stabilizeUntil:0, pauseVisualUntil:0,
-      tabletInUse:true, zombie:false, emergencyProgress:0
-    };
-  }
-
-  function renderFriendCard(fr){
-    const el = document.createElement("div");
-    el.className = "friend"; el.dataset.id = fr.id; el.tabIndex = 0;
-    el.innerHTML = `
-      <div class="name">${fr.name}</div>
-      <div class="wrap">
-        <div class="avatar" id="av-${fr.id}">
-          <div class="eyes"><div class="eye l"></div><div class="eye r"></div></div>
-          <div class="mouth"></div>
-          <div class="blush l"></div><div class="blush r"></div>
-        </div>
-        <div>
-          <div class="meter" aria-label="Medidor de zombificación de ${fr.name}">
-            <div class="bar" id="bar-${fr.id}"></div>
-            <div class="label" id="lab-${fr.id}">0%</div>
-          </div>
-          <div class="status">
-            <span class="sym eyes hidden" id="sym-eyes-${fr.id}">👀</span>
-            <span class="sym posture hidden" id="sym-posture-${fr.id}">🧍</span>
-            <span class="sym tired hidden" id="sym-tired-${fr.id}">🥱</span>
-            <span class="sym sedentary hidden" id="sym-sed-${fr.id}">🪑</span>
-            <span class="sym zombie hidden" id="sym-z-${fr.id}">🧟</span>
+// --- VISUALES ---
+function renderFriends() {
+  const container = document.getElementById('friends-container');
+  container.innerHTML = '';
+  state.friends.forEach(f => {
+    const div = document.createElement('div');
+    div.className = 'friend';
+    div.id = `friend-${f.id}`;
+    div.innerHTML = `
+      <div class="symptom-bubble hidden" id="sym-${f.id}"></div>
+      <div class="avatar-container">
+        <div class="avatar" id="av-${f.id}">
+          <div class="face-parts">
+            <div class="eyes"><div class="eye"></div><div class="eye"></div></div>
+            <div class="mouth"></div>
           </div>
         </div>
-      </div>`;
-    el.addEventListener("click",()=>selectFriend(fr.id));
-    return el;
-  }
+      </div>
+      <div style="font-weight:900;">${f.name}</div>
+      <div class="meter-box"><div class="meter-bar" id="bar-${f.id}"></div></div>
+    `;
+    container.appendChild(div);
+  });
+}
 
-  function selectFriend(id){
-    state.selection.friendIndex = id;
-    highlightSelection();
-  }
+function updateVisuals() {
+  document.getElementById('timer').innerText = Math.ceil(state.time);
+  document.getElementById('score').innerText = state.score;
 
-  function highlightSelection(){
-    $$(".friend").forEach(el=>el.style.outline = "none");
-    const focused = $(`.friend[data-id="${state.selection.friendIndex}"]`);
-    if(focused) focused.style.outline = "4px solid #3ddcff";
+  state.friends.forEach(f => {
+    const el = document.getElementById(`friend-${f.id}`);
+    const bar = document.getElementById(`bar-${f.id}`);
+    const av = document.getElementById(`av-${f.id}`);
+    const sym = document.getElementById(`sym-${f.id}`);
 
-    $$(".antidote").forEach((el,i)=>{
-      if(i===state.selection.antidoteIndex) el.classList.add("selected");
-      else el.classList.remove("selected");
-    });
-  }
+    // Barra
+    bar.style.width = Math.min(100, f.meter) + '%';
+    // Color de barra: Rojo si tiene síntoma o está alto
+    if ((f.activeSymptom && f.activeSymptom !== 'hungry') || f.meter > 80) bar.style.background = 'var(--danger)';
+    else if (f.activeSymptom === 'hungry') bar.style.background = 'var(--warn)'; // Amarillo para comida
+    else bar.style.background = 'linear-gradient(90deg, #22c55e, #eab308)';
 
-  // ------ Máquina de estados ------
-  function startBriefing(){
-    showScreen("CLUB"); // pasamos directo al tablero, briefing ya visible arriba
-    message("Consejo: usa la mochila para curar síntomas. ¡Buena suerte!");
-    speak("Briefing completado. Iniciando misión en el Club de Juegos.");
-  }
-
-  function startDay(){
-    // Reset del estado
-    state.time = GAME_DURATION; state.running = true; state.score = 0; state.zombiesCured = 0; state.allZombiesAtOnce=false;
-    state.merienda = {triggered:false, windowEnd:0, active:false};
-    state.metrics = {eyesCured:0, backCured:0, movementAntidotes:0, contextCorrections:0, clubLibre:false};
-
-    // Reset amigos
-    friends.forEach(fr=>{
-      Object.assign(fr, createFriend(fr.id, fr.name));
-      // leve variación para no ser idénticos
-      fr.meter = 4 + Math.random()*10;
-    });
-
-    lastTs = performance.now();
-    requestAnimationFrame(loop);
-    updateHud();
-  }
-
-  function endGame(victory){
-    state.running = false;
-    state.metrics.clubLibre = victory;
-    showScreen("FIN");
-
-    const box = $("#finContent");
-    box.innerHTML = "";
-    const title = document.createElement("h1");
-    title.textContent = victory?"🏆 ¡Victoria! Día completado":"⛔ ¡Derrota! Todos fueron zombis";
-    const p = document.createElement("p");
-    p.textContent = victory?"¡Gran trabajo, Capitán/a! La ciudadanía digital está a salvo por hoy." : "La Comandante del Bienestar sugiere más descansos y movimiento.";
-    const btnReport = document.createElement("button"); btnReport.className = "btn"; btnReport.textContent = "📊 Ver Reporte"; btnReport.onclick = ()=>showReport();
-    const btnRetry = document.createElement("button"); btnRetry.className = "btn"; btnRetry.textContent = "🔄 Reintentar"; btnRetry.onclick = ()=>{showScreen("CLUB"); startDay();};
-
-    const row = document.createElement("div"); row.className = "stack"; row.append(title, p, btnReport, btnRetry);
-    box.append(row);
-
-    // Guardar ranking
-    if(state.zombiesCured > state.bestCured){
-      state.bestCured = state.zombiesCured;
-      localStorage.setItem("bestZombiesCured", String(state.bestCured));
-    }
-  }
-
-  function showReport(){
-    showScreen("REPORTE");
-    const g = $("#reportGrid");
-    g.innerHTML = "";
-    const items = [
-      ["Curaste casos de ojos cansados", state.metrics.eyesCured],
-      ["Curaste casos de espalda de zombi", state.metrics.backCured],
-      ["Aplicaste antídotos de movimiento", state.metrics.movementAntidotes],
-      ["Corregiste momentos inapropiados", state.metrics.contextCorrections],
-      ["Zombis curados", state.zombiesCured],
-      ["Puntuación final", state.score],
-      ["Club libre de zombis", state.metrics.clubLibre?"Sí":"No"],
-      ["Mejor marca local — Zombis curados", state.bestCured]
-    ];
-    for(const [label,val] of items){
-      const row = document.createElement("div"); row.className = "row";
-      const a = document.createElement("div"); a.textContent = label;
-      const b = document.createElement("div"); b.innerHTML = `<strong>${val}</strong>`;
-      row.append(a,b); g.append(row);
-    }
-    $("#btnRetry").onclick = ()=>{showScreen("CLUB"); startDay();};
-    $("#btnHome").onclick = ()=>{showScreen("BRIEFING")};
-  }
-
-  // ------ Bucle del juego ------
-  function loop(ts){
-    if(!state.running) return;
-    const dt = Math.min(0.05, (ts - lastTs)/1000); // tope dt 50 ms para estabilidad
-    lastTs = ts;
-
-    update(dt);
-    render();
-
-    if(state.running) requestAnimationFrame(loop);
-  }
-
-  function update(dt){
-    // Tiempo
-    state.time = Math.max(0, state.time - dt);
-
-    // Evento de merienda
-    const elapsed = GAME_DURATION - state.time;
-    if(!state.merienda.triggered && elapsed >= MERIENDA_TIME){
-      triggerContextEvent("merienda");
-    }
-    if(state.merienda.active && now() > state.merienda.windowEnd){
-      // Fin de ventana de 6 s → penaliza a quien siguió con pantalla
-      state.merienda.active = false;
-      $(`[data-type="apple"]`).classList.add("locked");
-      let penalizados = 0;
-      friends.forEach(fr=>{
-        if(fr.tabletInUse){
-          fr.penaltyUntil = now() + MERIENDA_PENALTY;
-          penalizados++;
-        }
-      });
-      if(penalizados>0){
-        message(`Merienda ignorada por ${penalizados}. Aumento acelerado 10 s.`, true);
-      } else {
-        message("¡Excelente! Merienda respetada. Estabilidad ganada.");
-      }
-    }
-
-    // Actualizar amigos
-    let zombiesNow = 0;
-    friends.forEach(fr=>{
-      // Recalcular síntomas derivados por umbrales y tendencias
-      const wasMeter = fr.meter;
-
-      if(!fr.zombie){
-        // Aumentos
-        let rate = BASE_RATE;
-        // Pausa visual por agua
-        if(fr.pauseVisualUntil > now()) rate = 0;
-        // Sedentarismo sostenido agrega extra
-        fr.sedentary = (now() - fr.lastMove) > SEDENTARY_SECONDS;
-        if(fr.sedentary) rate += 0.15;
-        // Penalización por ignorar merienda
-        if(fr.penaltyUntil > now()) rate *= 2;
-        // Estabilidad por merienda corregida
-        if(fr.stabilizeUntil > now()) rate *= .5;
-
-        fr.meter = clamp(fr.meter + rate*dt, 0, 100);
-
-        // Tendencia para "cansancio" si sube 8 s seguidos sin bajar
-        if(fr.meter > wasMeter) fr.riseSince += dt; else { fr.riseSince = 0; fr.lastLower = now(); }
-        fr.tired = fr.riseSince > 8;
-
-        // Umbrales de ojos y postura
-        fr.eyes = fr.meter >= THRESH_EYES;
-        fr.posture = fr.meter >= THRESH_POSTURE;
-
-        // Si llega a 100 → Zombi
-        if(fr.meter >= 100 && !fr.zombie){
-          enterZombie(fr);
-        }
-      }
-
-      if(fr.zombie) zombiesNow++;
-    });
-
-    if(zombiesNow === friends.length){
-      state.allZombiesAtOnce = true;
-      endGame(false);
-      return;
-    }
-
-    // Fin del día
-    if(state.time <= 0){
-      endGame(true);
-      return;
-    }
-  }
-
-  function render(){
-    // HUD
-    updateHud();
-
-    friends.forEach(fr=>{
-      const pct = Math.round(fr.meter);
-      const bar = $(`#bar-${fr.id}`); const lab = $(`#lab-${fr.id}`); const av = $(`#av-${fr.id}`);
-      if(bar) bar.style.width = `${pct}%`;
-      if(lab) lab.textContent = `${pct}%`;
-
-      // Colores de barra por estado
-      const meterEl = lab.parentElement;
-      meterEl.style.borderColor = fr.zombie?"var(--danger)":(pct<33?"var(--ok)":pct<66?"var(--warn)":"var(--danger)");
-
-      // Avatar flags
-      av.classList.toggle("zombie", fr.zombie);
-      av.classList.toggle("tired", fr.tired);
-      av.classList.toggle("hunched", fr.posture && !fr.zombie);
-      // Ojos
-      av.querySelectorAll('.eye').forEach(e=>e.classList.toggle('red', fr.eyes && !fr.zombie));
-
-      // Símbolos
-      toggleSym(`sym-eyes-${fr.id}`, fr.eyes && !fr.zombie);
-      toggleSym(`sym-posture-${fr.id}`, fr.posture && !fr.zombie);
-      toggleSym(`sym-tired-${fr.id}`, fr.tired && !fr.zombie);
-      toggleSym(`sym-sed-${fr.id}`, fr.sedentary && !fr.zombie);
-      toggleSym(`sym-z-${fr.id}`, fr.zombie);
-
-      // Aria label accesible
-      const friendCard = $(`.friend[data-id="${fr.id}"]`);
-      if(friendCard) friendCard.setAttribute("aria-label", `${fr.name}, medidor ${pct}%`);
-    });
-  }
-
-  function toggleSym(id, on){
-    const el = $(`#${id}`); if(!el) return; el.classList.toggle("hidden", !on);
-  }
-
-  function updateHud(){
-    $("#time").textContent = Math.ceil(state.time);
-    $("#score").textContent = Math.round(state.score);
-    $("#cured").textContent = state.zombiesCured;
-  }
-
-  function enterZombie(fr){
-    fr.zombie = true; fr.meter = 100; fr.emergencyProgress = 0;
-    message(`¡Oh, no! ${fr.name} entró en Modo Zombi.`, true);
-    siren(); speak("Oh no. ¡Un zombi digital!");
-    state.score -= 15; // pérdida de puntos al activarse
-  }
-
-  // ------ Antídotos ------
-  function applyAntidote(type, friendId){
-    const fr = friends.find(f=>f.id===friendId);
-    if(!fr) return;
-
-    // 🍎 solo durante evento
-    if(type === 'apple' && !state.merienda.active){
-      message("La mesa de merienda solo aparece durante el evento.");
-      errorSound(); return;
-    }
-
-    if(fr.zombie){
-      // En emergencia: cuentan antídotos correctos (movimiento + agua/estirar) según síntomas visibles
-      let correct = false;
-      if((type==='rope' || type==='ball')){ correct = true; state.metrics.movementAntidotes++; }
-      if((fr.eyes && type==='water') || (fr.posture && type==='stretch')) correct = true;
-      if(correct){
-        fr.emergencyProgress++;
-        fr.meter = clamp(fr.meter + (EFFECTS[type]?.delta||0), 0, 100);
-        success();
-        message(`Rescate en progreso (${fr.emergencyProgress}/3) a ${fr.name}`);
-        if(fr.emergencyProgress>=3){
-          fr.zombie = false; fr.meter = 50; fr.pauseVisualUntil = 0; fr.penaltyUntil = 0; fr.stabilizeUntil = 0; fr.riseSince = 0; fr.lastMove = now();
-          state.zombiesCured++; state.score += 25;
-          message(`¡${fr.name} vuelve a la vida!`, false, true);
-          speak("Mente en la pantalla, cuerpo en acción, esa es la perfecta combinación!");
-        }
-      }else{
-        error("Ese antídoto no ayuda en emergencia.");
-      }
-      return;
-    }
-
-    // Normal
-    const eff = EFFECTS[type];
-    let ok = false;
-
-    if(type==='water' && fr.eyes){
-      ok = true; fr.meter = clamp(fr.meter + eff.delta, 0, 100); fr.pauseVisualUntil = now() + eff.pauseVisual; state.metrics.eyesCured++;
-    } else if(type==='stretch' && fr.posture){
-      ok = true; fr.meter = clamp(fr.meter + eff.delta, 0, 100); state.metrics.backCured++;
-    } else if(type==='rope' && fr.tired){
-      ok = true; fr.meter = clamp(fr.meter + eff.delta, 0, 100); fr.stabilizeUntil = now() + eff.boost; state.metrics.movementAntidotes++;
-    } else if(type==='ball' && fr.sedentary){
-      ok = true; fr.meter = clamp(fr.meter + eff.delta, 0, 100); fr.lastMove = now(); state.metrics.movementAntidotes++;
-    } else if(type==='apple' && state.merienda.active && fr.tabletInUse){
-      ok = true; fr.tabletInUse = false; fr.stabilizeUntil = now() + eff.stabilize; state.metrics.contextCorrections++; state.score += 5;
-    }
-
-    if(ok){
-      success();
-      $("#messages").classList.add("glow"); setTimeout(()=>$("#messages").classList.remove("glow"), 350);
-      const txt = type==='apple'?"¡Excelente! Cada cosa a su tiempo." : "¡Gran intervención, Capitán! Energía recargada.";
-      message(txt);
-      speak(type==='apple'?"Hora de merienda: pantallas fuera": "Gran intervención, Capitán");
+    // Avatar
+    av.classList.toggle('zombie-skin', f.isZombie);
+    av.classList.toggle('eyes-red', f.activeSymptom === 'eyes');
+    
+    // Burbuja de síntoma
+    if (f.isZombie) {
+      sym.textContent = '🧟'; sym.className = 'symptom-bubble';
+    } else if (f.activeSymptom) {
+      sym.className = 'symptom-bubble pulse';
+      if(f.activeSymptom === 'eyes') sym.textContent = '👀';
+      if(f.activeSymptom === 'posture') sym.textContent = '🦐';
+      if(f.activeSymptom === 'sedentary') sym.textContent = '🕸️';
+      if(f.activeSymptom === 'tired') sym.textContent = '⚡'; // Nuevo Icono
+      if(f.activeSymptom === 'hungry') sym.textContent = '🍎';
     } else {
-      error("Ese antídoto no corresponde al síntoma.");
-    }
-  }
-
-  function success(){ successSound(); state.score += 10; }
-  function error(msg){ errorSound(); state.score -= 5; message(msg, true); }
-
-  function message(text, warn=false, big=false){
-    const el = $("#messages");
-    el.textContent = text;
-    el.style.borderColor = warn?"var(--danger)":"#26314e";
-    if(big){ el.style.fontWeight = "900"; setTimeout(()=>el.style.fontWeight="700", 600); }
-  }
-
-  function triggerContextEvent(name){
-    if(name!=="merienda") return;
-    state.merienda = {triggered:true, windowEnd: now()+MERIENDA_WINDOW, active:true};
-    message("🍎 Hora de merienda: ¡pantallas fuera! Usa la mesa si alguien sigue con la tablet.");
-    speak("Hora de merienda: pantallas fuera");
-    const apple = $(`[data-type="apple"]`);
-    apple.classList.remove("locked");
-    apple.classList.add("glow"); setTimeout(()=>apple.classList.remove("glow"), 1200);
-    // Marcar a todos temporalmente como usando tablet (ya lo están), si se corrige, se estabiliza
-    friends.forEach(fr=>{ fr.tabletInUse = true; });
-  }
-
-  // ------ Drag & Drop táctil/mouse ------
-  function setupBackpackDrag(){
-    const backpack = $("#backpack");
-    const ghost = $("#dragGhost");
-    let dragging = null;
-
-    const startDrag = (target, x, y)=>{
-      if(target.classList.contains('locked')) return; // bloqueado (🍎 fuera de evento)
-      dragging = {type: target.dataset.type, el: target};
-      ghost.innerHTML = ""; const g = target.cloneNode(true); g.style.transform = "scale(1.1)"; ghost.appendChild(g);
-      ghost.style.display = "block"; moveGhost(x,y);
-      document.addEventListener("pointermove", onMove);
-      document.addEventListener("pointerup", onUp, {once:true});
-    };
-
-    const onMove = (e)=>{ moveGhost(e.clientX, e.clientY); };
-    const moveGhost = (x,y)=>{ ghost.style.left = x+"px"; ghost.style.top = y+"px"; };
-
-    const onUp = (e)=>{
-      ghost.style.display = "none"; ghost.innerHTML = ""; dragging && applyDrop(e.clientX, e.clientY, dragging.type);
-      dragging = null; document.removeEventListener("pointermove", onMove);
-    };
-
-    function applyDrop(x,y,type){
-      const el = document.elementFromPoint(x,y);
-      const friendEl = el?.closest?.('.friend');
-      if(friendEl){
-        const id = Number(friendEl.dataset.id);
-        applyAntidote(type, id);
-      } else {
-        message("Suelta el antídoto sobre un amigo.");
-        errorSound();
-      }
+      sym.className = 'symptom-bubble hidden';
     }
 
-    backpack.addEventListener("pointerdown", (e)=>{
-      const t = e.target.closest('.antidote'); if(!t) return; e.preventDefault();
-      startDrag(t, e.clientX, e.clientY);
-    });
+    if (f.activeSymptom && !f.isZombie) el.classList.add('critical');
+    else el.classList.remove('critical');
+  });
+}
 
-    // Accesibilidad con Enter/Espacio en la mochila: seleccionar antídoto
-    $$(".antidote").forEach((btn, idx)=>{
-      btn.addEventListener("keydown", (e)=>{
-        if(e.key==="Enter" || e.key===" "){ e.preventDefault(); state.selection.antidoteIndex = idx; highlightSelection(); message("Antídoto seleccionado. Usa Enter para aplicar."); }
-      });
-    });
+// --- INTERACCIÓN ---
+function triggerMerienda() {
+  state.meriendaActive = true;
+  state.meriendaGracePeriod = true; // Activar periodo de gracia
+  
+  // Asignar hambre a todos los vivos
+  state.friends.forEach(f => {
+    if(!f.isZombie) f.activeSymptom = 'hungry';
+  });
+
+  playSound('bell');
+  const appleBtn = document.getElementById('tool-apple');
+  appleBtn.classList.remove('locked');
+  appleBtn.classList.add('suggested');
+  
+  const alert = document.createElement('div');
+  alert.className = "big-alert";
+  alert.innerHTML = "¡HORA DE MERIENDA! 🍎<br><span style='font-size:0.6em; font-weight:normal'>¡Dale una manzana a todos!</span>";
+  document.body.appendChild(alert);
+  setTimeout(() => alert.remove(), 2500);
+  
+  // Quitar periodo de gracia después de 1.5s
+  setTimeout(() => state.meriendaGracePeriod = false, 1500);
+}
+
+function endMerienda() {
+  state.meriendaActive = false;
+  // Limpiar hambre si quedó alguien sin comer (y no es zombie)
+  state.friends.forEach(f => {
+    if(f.activeSymptom === 'hungry') f.activeSymptom = null;
+  });
+  
+  const appleBtn = document.getElementById('tool-apple');
+  appleBtn.classList.add('locked');
+  appleBtn.classList.remove('suggested');
+}
+
+function applyTool(friendId, toolType) {
+  const f = state.friends[friendId];
+  if (f.isZombie) {
+    showFloatText(friendId, "¡Ya es Zombi!", "gray");
+    playSound('error');
+    return;
   }
 
-  // ------ Teclado opcional ------
-  function setupKeyboard(){
-    window.addEventListener('keydown', (e)=>{
-      if(state.screen!=="CLUB") return;
-      const maxAnt = 5;
-      if(e.key>='1' && e.key<='5'){
-        const idx = Number(e.key)-1; state.selection.antidoteIndex = idx; highlightSelection(); successSound(); return;
-      }
-      if(e.key==='ArrowLeft') { state.selection.friendIndex = (state.selection.friendIndex+2)%3; highlightSelection(); return; }
-      if(e.key==='ArrowRight'){ state.selection.friendIndex = (state.selection.friendIndex+1)%3; highlightSelection(); return; }
-      if(e.key==='Enter'){
-        const type = ["water","stretch","rope","ball","apple"][state.selection.antidoteIndex]||"water";
-        applyAntidote(type, state.selection.friendIndex);
-        return;
-      }
-      if(e.key==='r' || e.key==='R'){ showScreen("CLUB"); startDay(); return; }
-    });
+  let success = false;
+  const needed = f.activeSymptom;
+
+  // Lógica de Cura
+  if (toolType === 'apple' && needed === 'hungry') success = true;
+  else if (toolType === 'water' && needed === 'eyes') success = true;
+  else if (toolType === 'stretch' && needed === 'posture') success = true;
+  else if (toolType === 'ball' && needed === 'sedentary') success = true;
+  else if (toolType === 'rope' && needed === 'tired') success = true; 
+  // La cuerda también ayuda si no hay síntoma, pero menos
+  else if (toolType === 'rope' && !needed && f.meter > 50) { 
+    f.meter -= 10; playSound('jump'); showFloatText(friendId, "¡Energía!", "cyan"); return;
   }
 
-  // ------ Helpers ------
-  const now = ()=>performance.now()/1000;
-  const clamp = (v,min,max)=>v<min?min:v>max?max:v;
+  if (success) {
+    f.meter = Math.max(0, f.meter + TOOLS[toolType].effect);
+    f.frozen = true; setTimeout(() => f.frozen = false, 1000);
+    f.activeSymptom = null; // Quitar síntoma
+    state.score++;
+    playSound(TOOLS[toolType].sound);
+    showFloatText(friendId, "¡Bien!", "lime");
+  } else {
+    f.meter += 10; // Penalización por error
+    playSound('error');
+    showFloatText(friendId, "¡Eso no!", "orange");
+  }
+}
 
-  // Inicio
-  window.addEventListener('load', init, {once:true});
-})();
+// --- DRAG & DROP ---
+function setupDragAndDrop() {
+  const tools = document.querySelectorAll('.tool');
+  const ghost = document.getElementById('dragGhost');
+  
+  tools.forEach(tool => {
+    tool.addEventListener('pointerdown', e => {
+      if (e.target.closest('.locked')) return;
+      const t = e.target.closest('.tool');
+      const type = t.dataset.type;
+      const emoji = t.querySelector('.emoji').innerText;
+      
+      ghost.innerText = emoji;
+      ghost.style.display = 'block';
+      moveGhost(e);
+      t.setPointerCapture(e.pointerId);
+      
+      t.onpointermove = moveGhost;
+      t.onpointerup = (ev) => {
+        ghost.style.display = 'none';
+        t.onpointermove = null; t.onpointerup = null;
+        const el = document.elementFromPoint(ev.clientX, ev.clientY);
+        const friendEl = el?.closest('.friend');
+        if (friendEl) applyTool(parseInt(friendEl.id.split('-')[1]), type);
+      };
+    });
+  });
+
+  function moveGhost(e) {
+    ghost.style.left = e.clientX + 'px';
+    ghost.style.top = e.clientY + 'px';
+  }
+}
+
+// --- FIN ---
+function endGame(win) {
+  state.playing = false;
+  showScreen('reporte');
+  playSound(win ? 'win' : 'lose');
+  
+  const card = document.getElementById('reportCard');
+  const title = document.getElementById('reportTitle');
+  const msg = document.getElementById('reportMsg');
+  const icon = document.getElementById('reportIcon');
+  
+  document.getElementById('statZombies').innerText = state.zombiesCount;
+  document.getElementById('statScore').innerText = state.score;
+  
+  card.className = "report-card " + (win ? "win" : "lose");
+  if (win) {
+    title.innerText = "¡VICTORIA!";
+    title.style.color = "var(--ok)";
+    icon.innerText = "🏆";
+    msg.innerText = "¡El equipo está a salvo gracias a ti!";
+  } else {
+    title.innerText = "¡ZOMBIS!";
+    title.style.color = "var(--danger)";
+    icon.innerText = "🧟";
+    msg.innerText = "El virus digital ganó esta vez.";
+  }
+}
+
+// --- AUDIO Y UI ---
+function showFloatText(id, txt, col) {
+  const el = document.getElementById(`friend-${id}`);
+  const f = document.createElement('div');
+  f.className = 'floater'; f.style.color = col; f.innerText = txt;
+  f.style.top="50%"; f.style.left="50%"; f.style.transform="translate(-50%,-50%)";
+  el.appendChild(f); setTimeout(()=>f.remove(), 1000);
+}
+
+function toggleMute() {
+  muted = !muted;
+  document.getElementById('btnMute').innerText = muted ? "🔇" : "🔊";
+}
+
+function playSound(type) {
+  if (muted) return;
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audioCtx.createOscillator();
+  const g = audioCtx.createGain();
+  osc.connect(g); g.connect(audioCtx.destination);
+  const now = audioCtx.currentTime;
+  
+  if (type === 'alert') {
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(600, now);
+    osc.frequency.linearRampToValueAtTime(400, now+0.3);
+    g.gain.setValueAtTime(0.1, now); osc.start(); osc.stop(now+0.3);
+  } else if (type === 'start') {
+    osc.frequency.setValueAtTime(400, now); osc.frequency.exponentialRampToValueAtTime(800, now+0.5);
+    g.gain.setValueAtTime(0.1, now); osc.start(); osc.stop(now+0.5);
+  } else if (type === 'error') {
+    osc.type = 'sawtooth'; osc.frequency.setValueAtTime(150, now);
+    g.gain.setValueAtTime(0.1, now); osc.start(); osc.stop(now+0.2);
+  } else {
+    osc.frequency.value = 440; g.gain.value = 0.1; osc.start(); osc.stop(now+0.1);
+  }
+}
 </script>
 </body>
 </html>
